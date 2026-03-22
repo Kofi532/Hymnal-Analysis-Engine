@@ -8,7 +8,6 @@ serial==0.0.97
 virtualenv==20.23.1
 gunicorn==23.0.0
 Django==5.1.2
-whitenoise==6.7.
 pandas
 numpy
 music21
