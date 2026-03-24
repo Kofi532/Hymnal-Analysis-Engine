@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Music Analysis Engine | Kofi Adukpo</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .kpi-card { transition: transform 0.2s; border: none; border-radius: 10px; }
+        .kpi-card:hover { transform: translateY(-5px); }
+        .chart-container { background: white; border-radius: 15px; padding: 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+        .btn-explorer { font-weight: 600; }
+        .select-label { font-size: 0.85rem; font-weight: 700; color: #6c757d; text-transform: uppercase; }
+        .contact-link { color: inherit; text-decoration: none; border-bottom: 1px solid transparent; transition: 0.3s; }
+        .contact-link:hover { border-bottom: 1px solid #0d6efd; color: #0d6efd; }
+    </style>
+</head>
+<body class="bg-light">
+
+<nav class="navbar navbar-dark bg-dark mb-4 shadow-sm">
+    <div class="container">
+        <span class="navbar-brand mb-0 h1">Musical Structure Analysis Engine</span>
+    </div>
+</nav>
+
+<div class="container">
+    <div class="row mb-4 align-items-center">
+        <div class="col-md-7">
+            <h2 class="fw-bold">Hymnal Analytics Dashboard</h2>
+            <p class="text-muted">Interactive Markov Model exploring melodic syntax and stochastic transitions.</p>
+        </div>
+        <div class="col-md-5 text-end">
+            <div class="dropdown d-inline-block">
+                <button class="btn btn-primary btn-explorer dropdown-toggle shadow-sm" type="button" id="dataExplorerMenu" data-bs-toggle="dropdown" aria-expanded="false">
+                    Explore Datasets
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="dataExplorerMenu">
+                    <li><h6 class="dropdown-header">Processed Data</h6></li>
+                    <li><a class="dropdown-item" href="{% url 'raw_data' %}">Analytical Base Table</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><h6 class="dropdown-header">Source Data</h6></li>
+                    <li><a class="dropdown-item" href="{% url 'raw_source' %}">Raw JSON Source</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-5">
+        <div class="col-md-3">
+            <div class="card kpi-card bg-white shadow-sm p-3 text-center">
+                <p class="text-uppercase text-muted small fw-bold mb-1">Transitions Processed</p>
+                <h3 class="text-primary fw-bold">{{ total_transitions }}</h3>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card kpi-card bg-white shadow-sm p-3 text-center">
+                <p class="text-uppercase text-muted small fw-bold mb-1">Consonance Rate</p>
+                <h3 class="text-success fw-bold">{{ consonance_rate }}%</h3>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card kpi-card bg-white shadow-sm p-3 text-center">
+                <p class="text-uppercase text-muted small fw-bold mb-1">Total Hymns (N)</p>
+                <h3 class="text-info fw-bold">{{ unique_hymns }}</h3>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card kpi-card bg-white shadow-sm p-3 text-center">
+                <p class="text-uppercase text-muted small fw-bold mb-1">Most Frequent Note</p>
+                <h3 class="text-dark fw-bold">{{ top_start_note }}</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-md-8">
+            <div class="chart-container">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="fw-bold mb-0">Melodic Transition Probabilities</h5>
+                    <div class="d-flex align-items-center">
+                        <span class="select-label me-2">Current Note:</span>
+                        <select id="noteSelector" class="form-select form-select-sm shadow-sm" style="width: 100px;">
+                            {% for note in available_notes %}
+                                <option value="{{ note }}" {% if note == top_start_note %}selected{% endif %}>{{ note }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                
+                <canvas id="markovChart" height="160"></canvas>
+                
+                <div class="mt-4 p-3 bg-light rounded border-start border-primary border-4">
+                    <p class="mb-0 small text-dark">
+                        <strong>Statistical Interpretation:</strong> This chart visualizes the probability of the next melodic 
+                        interval given the selected current note, derived from a first-order Markov Chain model of the Soprano voice.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm p-4 h-100">
+                <h5 class="fw-bold">Analytical Profile</h5>
+                <hr>
+                <ul class="list-unstyled">
+                    <li class="mb-3">
+                        <strong>Architecture:</strong> Discrete-time Markov Chain (DTMC).
+                    </li>
+                    <li class="mb-3">
+                        <strong>ETL Pipeline:</strong> MIDI parsing via <code>music21</code> and data processing in <code>Pandas</code>.
+                    </li>
+                    <li class="mb-3">
+                        <strong>Logic:</strong> SATB voice-labeling based on pitch-rank sorting.
+                    </li>
+                </ul>
+                <div class="mt-auto pt-3 border-top">
+                    <h6 class="fw-bold mb-1">Developer Details</h6>
+                    <p class="small mb-0 text-dark"><strong>{{ "Kofi Adukpo" }}</strong></p>
+                    <p class="small mb-0">
+                        <a href="mailto:kadukpo@yahoo.com" class="contact-link">kadukpo@yahoo.com</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<footer class="mt-5 py-4 bg-white border-top text-center text-muted small">
+    <strong>Kofi Adukpo</strong> | 2026 | Built with Django & Chart.js
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    const fullMatrix = JSON.parse('{{ full_matrix_json|safe }}');
+    const ctx = document.getElementById('markovChart').getContext('2d');
+    let noteSelector = document.getElementById('noteSelector');
+    let currentNote = noteSelector.value;
+    
+    function getChartData(note) {
+        let dataObj = fullMatrix[note] || {};
+        let labels = Object.keys(dataObj).sort();
+        let values = labels.map(label => (dataObj[label] * 100).toFixed(2));
+        return { labels, values };
+    }
+
+    let initial = getChartData(currentNote);
+
+    let markovChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: initial.labels,
+            datasets: [{
+                label: 'Transition Probability (%)',
+                data: initial.values,
+                backgroundColor: 'rgba(13, 110, 253, 0.75)',
+                borderColor: 'rgba(13, 110, 253, 1)',
+                borderWidth: 1,
+                borderRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { 
+                    beginAtZero: true, 
+                    max: 100,
+                    title: { display: true, text: 'Probability (%)', font: { weight: 'bold' } } 
+                },
+                x: { title: { display: true, text: 'Next Note in Sequence', font: { weight: 'bold' } } }
+            }
+        }
+    });
+
+    noteSelector.addEventListener('change', function() {
+        let updated = getChartData(this.value);
+        markovChart.data.labels = updated.labels;
+        markovChart.data.datasets[0].data = updated.values;
+        markovChart.update();
+    });
+</script>
+
+</body>
+</html>
